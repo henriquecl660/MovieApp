@@ -1,5 +1,7 @@
 package lopes.henrique.movieapp.model;
 
+import java.util.ArrayList;
+
 /**
  * Created by henri on 18/02/2018.
  */
@@ -24,7 +26,7 @@ public class RespostaServidor {
          private String Country;
          private String Awards;
          private String Poster;
-         private String ratings;
+         private Object Ratings;
          private String Metascore;
          private String imdbRating;
          private String imdbVotes;
@@ -149,13 +151,6 @@ public class RespostaServidor {
         this.Poster = Poster;
     }
 
-    public String getRatings() {
-        return ratings;
-    }
-
-  public void setRatings(String ratings) {
-        this.ratings = ratings;
-    }
 
     public String getMetascore() {
         return Metascore;
@@ -253,5 +248,11 @@ public class RespostaServidor {
     }
 
 
+    public Object getRatings() {
+        return Ratings;
+    }
 
+    public void setRatings(Object ratings) {
+        Ratings = ratings;
+    }
 }

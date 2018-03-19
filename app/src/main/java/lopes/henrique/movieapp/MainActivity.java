@@ -10,7 +10,9 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
+import android.text.Html;
 import android.text.Layout;
+import android.text.method.LinkMovementMethod;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -24,6 +26,7 @@ import com.google.gson.JsonObject;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -48,18 +51,22 @@ public class MainActivity extends AppCompatActivity {
     private TextView tv_title, tv_year, tv_rated, tv_released, tv_runtime, tv_genre, tv_director, tv_writer, tv_actors, tv_plot, tv_language, tv_country, tv_awards, tv_poster,
             tv_ratings, tv_metascore, tv_imdbRating, tv_imdbVotes, tv_imdbID, tv_type, tv_DVD, tv_boxOffice, tv_production, tv_website, tv_response;
     private EditText tv_entradaNomeFilme;
+
+
     RespostaServidor resposta = new RespostaServidor();
     ProgressDialog progress;
-    int indiceRegistroaSerExibido;
+    int indiceRegistroAserExibido;
+
 
     private MovieApp_db myDB;
     ArrayList<RespostaServidor> registros;
-    // public ImageView iv_1;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
 
         myDB = new MovieApp_db(this);
 
@@ -108,9 +115,15 @@ public class MainActivity extends AppCompatActivity {
 
     public void on_clickSearch(View view) {
 
+        bt_salvar.setEnabled(true);
+        bt_recuperar.setEnabled(true);
+        bt_proximo.setEnabled(false);
+        bt_anterior.setEnabled(false);
+
         progress = new ProgressDialog(MainActivity.this);
         progress.setTitle("enviando ...");
         progress.show();
+
 
         //pega os valores dos editextos
         String filmeProcurado = tv_entradaNomeFilme.getText().toString();
@@ -139,7 +152,6 @@ public class MainActivity extends AppCompatActivity {
                 if (response.isSuccessful()) {
 
                     RespostaServidor respostaServidor = response.body();
-
 
 
 
@@ -180,6 +192,9 @@ public class MainActivity extends AppCompatActivity {
 
 
 
+
+
+
                             progress.dismiss();
                             try {
                                 setaValores();
@@ -189,17 +204,20 @@ public class MainActivity extends AppCompatActivity {
 
                         } else {
 
-                            Toast.makeText(getApplicationContext(), "Insira um nome de filme válido!", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getApplicationContext(), "Nome inválido ou filme não encontrado", Toast.LENGTH_SHORT).show();
+                            progress.dismiss();
 
                         }
                     } else {
 
                         Toast.makeText(getApplicationContext(), "Resposta nula do servidor", Toast.LENGTH_LONG).show();
+                        progress.dismiss();
                     }
 
                 } else {
 
                     Toast.makeText(getApplicationContext(), "Resposta não foi bem sucedida", Toast.LENGTH_SHORT).show();
+                    progress.dismiss();
                 }
 
             }
@@ -233,7 +251,11 @@ public class MainActivity extends AppCompatActivity {
         tv_awards.setText(resposta.getAwards());
 
         tv_poster.setText(resposta.getPoster());
-        tv_ratings.setText(resposta.getRatings());
+
+
+        String formatRatings = resposta.getRatings().toString();
+        formatRatings = formatRatings.replace("{","").replace("}","").replace("[","").replace("]","")+".";
+        tv_ratings.setText(formatRatings);
 
         tv_metascore.setText(resposta.getMetascore());
 
@@ -247,12 +269,29 @@ public class MainActivity extends AppCompatActivity {
         tv_production.setText(resposta.getProduction());
         tv_website.setText(resposta.getWebsite());
 
+        // exibir link da foto
+        if(tv_poster.getText().toString().contains("http")) {
+            tv_poster.setClickable(true);
+            tv_poster.setMovementMethod(LinkMovementMethod.getInstance());
+            String link = tv_poster.getText().toString();
+            String text = "<a href='" + link + "'> Clique aqui para visualizar (Requer Internet) </a>";
+            tv_poster.setText(Html.fromHtml(text));
+        }
+        //
+
 
     }
 
-    public void btn_salvarRegistro(View view) {
+    public void salvarRegistro(View view) {
+
+        bt_salvar.setEnabled(false);
         //int id = 1;
         //String str_id = id+"";
+
+
+        // recolocando link no tv poster
+        tv_poster.setText(resposta.getPoster());
+        //
 
         //Insere registros
 
@@ -265,6 +304,22 @@ public class MainActivity extends AppCompatActivity {
                 tv_website.getText().toString());
 
 
+        if(!bt_recuperar.isEnabled()){
+            bt_recuperar.setEnabled(true);
+            if(bt_anterior.isEnabled()){
+                bt_anterior.setEnabled(false);
+            }
+            if(bt_proximo.isEnabled()){
+                bt_proximo.setEnabled(false);
+            }
+
+
+
+        }
+
+
+
+
         //id++;
     }
 
@@ -275,42 +330,60 @@ public class MainActivity extends AppCompatActivity {
 
 
 
+        Log.e("QtdeRegistros",registros.size()+"");
 
-        bt_proximo.setEnabled(true);
-
-
-        tv_title.setText(registros.get(indiceRegistroaSerExibido).getTitle());
-        tv_year.setText(registros.get(indiceRegistroaSerExibido).getYear());
-        tv_rated.setText(registros.get(indiceRegistroaSerExibido).getRated());
-        tv_released.setText(registros.get(indiceRegistroaSerExibido).getReleased());
-        tv_runtime.setText(registros.get(indiceRegistroaSerExibido).getRuntime());
-        tv_genre.setText(registros.get(indiceRegistroaSerExibido).getGenre());
-        tv_director.setText(registros.get(indiceRegistroaSerExibido).getDirector());
-        tv_writer.setText(registros.get(indiceRegistroaSerExibido).getWriter());
-        tv_actors.setText(registros.get(indiceRegistroaSerExibido).getActors());
-        tv_plot.setText(registros.get(indiceRegistroaSerExibido).getPlot());
-        tv_language.setText(registros.get(indiceRegistroaSerExibido).getLanguage());
-        tv_country.setText(registros.get(indiceRegistroaSerExibido).getCountry());
-        tv_awards.setText(registros.get(indiceRegistroaSerExibido).getAwards());
-        tv_poster.setText(registros.get(indiceRegistroaSerExibido).getPoster());
-        tv_ratings.setText(registros.get(indiceRegistroaSerExibido).getRatings());
-        tv_metascore.setText(registros.get(indiceRegistroaSerExibido).getMetascore());
-        tv_imdbRating.setText(registros.get(indiceRegistroaSerExibido).getImdbRating());
-        tv_imdbVotes.setText(registros.get(indiceRegistroaSerExibido).getImdbVotes());
-        tv_imdbID.setText(registros.get(indiceRegistroaSerExibido).getImdbID());
-        tv_type.setText(registros.get(indiceRegistroaSerExibido).getType());
-        tv_DVD.setText(registros.get(indiceRegistroaSerExibido).getDVD());
-        tv_boxOffice.setText(registros.get(indiceRegistroaSerExibido).getBoxOffice());
-        tv_production.setText(registros.get(indiceRegistroaSerExibido).getProduction());
-        tv_website.setText(registros.get(indiceRegistroaSerExibido).getWebsite());
-
-        if(registros.size()==  0) {
+        if (registros.size()!=0) {
 
 
-            Toast.makeText(MainActivity.this, "A consulta não retornou registros", Toast.LENGTH_LONG).show();
+            bt_proximo.setEnabled(true);
+
+
+            tv_title.setText(registros.get(indiceRegistroAserExibido).getTitle());
+            tv_year.setText(registros.get(indiceRegistroAserExibido).getYear());
+            tv_rated.setText(registros.get(indiceRegistroAserExibido).getRated());
+            tv_released.setText(registros.get(indiceRegistroAserExibido).getReleased());
+            tv_runtime.setText(registros.get(indiceRegistroAserExibido).getRuntime());
+            tv_genre.setText(registros.get(indiceRegistroAserExibido).getGenre());
+            tv_director.setText(registros.get(indiceRegistroAserExibido).getDirector());
+            tv_writer.setText(registros.get(indiceRegistroAserExibido).getWriter());
+            tv_actors.setText(registros.get(indiceRegistroAserExibido).getActors());
+            tv_plot.setText(registros.get(indiceRegistroAserExibido).getPlot());
+            tv_language.setText(registros.get(indiceRegistroAserExibido).getLanguage());
+            tv_country.setText(registros.get(indiceRegistroAserExibido).getCountry());
+            tv_awards.setText(registros.get(indiceRegistroAserExibido).getAwards());
+            tv_poster.setText(registros.get(indiceRegistroAserExibido).getPoster());
+            tv_ratings.setText((String) registros.get(indiceRegistroAserExibido).getRatings());
+            tv_metascore.setText(registros.get(indiceRegistroAserExibido).getMetascore());
+            tv_imdbRating.setText(registros.get(indiceRegistroAserExibido).getImdbRating());
+            tv_imdbVotes.setText(registros.get(indiceRegistroAserExibido).getImdbVotes());
+            tv_imdbID.setText(registros.get(indiceRegistroAserExibido).getImdbID());
+            tv_type.setText(registros.get(indiceRegistroAserExibido).getType());
+            tv_DVD.setText(registros.get(indiceRegistroAserExibido).getDVD());
+            tv_boxOffice.setText(registros.get(indiceRegistroAserExibido).getBoxOffice());
+            tv_production.setText(registros.get(indiceRegistroAserExibido).getProduction());
+            tv_website.setText(registros.get(indiceRegistroAserExibido).getWebsite());
+
+
+            if(tv_poster.getText().toString().contains("http")) {
+                    tv_poster.setClickable(true);
+                    tv_poster.setMovementMethod(LinkMovementMethod.getInstance());
+                    String link = tv_poster.getText().toString();
+                    String text = "<a href='" + link + "'> Clique aqui para visualizar (Requer Internet) </a>";
+                    tv_poster.setText(Html.fromHtml(text));
+            }
+
 
         }
+
+        else {
+
+            Toast.makeText(MainActivity.this,"Não há nenhum registro",Toast.LENGTH_SHORT).show();
+            bt_recuperar.setEnabled(true);
+        }
+
         bt_recuperar.setEnabled(false);
+
+        bt_salvar.setEnabled(false);
 
     }
 
@@ -323,10 +396,10 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-     if(indiceRegistroaSerExibido!= 0) {
+     if(indiceRegistroAserExibido!= 0) {
 
          if (registros != null && registros.size() > 0) {
-             indiceRegistroaSerExibido--;
+             indiceRegistroAserExibido--;
 
 
 
@@ -334,34 +407,46 @@ public class MainActivity extends AppCompatActivity {
                  bt_anterior.setEnabled(true);
 
 
-                 tv_title.setText(registros.get(indiceRegistroaSerExibido).getTitle());
-                 tv_year.setText(registros.get(indiceRegistroaSerExibido).getYear());
-                 tv_rated.setText(registros.get(indiceRegistroaSerExibido).getRated());
-                 tv_released.setText(registros.get(indiceRegistroaSerExibido).getReleased());
-                 tv_runtime.setText(registros.get(indiceRegistroaSerExibido).getRuntime());
-                 tv_genre.setText(registros.get(indiceRegistroaSerExibido).getGenre());
-                 tv_director.setText(registros.get(indiceRegistroaSerExibido).getDirector());
-                 tv_writer.setText(registros.get(indiceRegistroaSerExibido).getWriter());
-                 tv_actors.setText(registros.get(indiceRegistroaSerExibido).getActors());
-                 tv_plot.setText(registros.get(indiceRegistroaSerExibido).getPlot());
-                 tv_language.setText(registros.get(indiceRegistroaSerExibido).getLanguage());
-                 tv_country.setText(registros.get(indiceRegistroaSerExibido).getCountry());
-                 tv_awards.setText(registros.get(indiceRegistroaSerExibido).getAwards());
-                 tv_poster.setText(registros.get(indiceRegistroaSerExibido).getPoster());
-                 tv_ratings.setText(registros.get(indiceRegistroaSerExibido).getRatings());
-                 tv_metascore.setText(registros.get(indiceRegistroaSerExibido).getMetascore());
-                 tv_imdbRating.setText(registros.get(indiceRegistroaSerExibido).getImdbRating());
-                 tv_imdbVotes.setText(registros.get(indiceRegistroaSerExibido).getImdbVotes());
-                 tv_imdbID.setText(registros.get(indiceRegistroaSerExibido).getImdbID());
-                 tv_type.setText(registros.get(indiceRegistroaSerExibido).getType());
-                 tv_DVD.setText(registros.get(indiceRegistroaSerExibido).getDVD());
-                 tv_boxOffice.setText(registros.get(indiceRegistroaSerExibido).getBoxOffice());
-                 tv_production.setText(registros.get(indiceRegistroaSerExibido).getProduction());
-                 tv_website.setText(registros.get(indiceRegistroaSerExibido).getWebsite());
+                 tv_title.setText(registros.get(indiceRegistroAserExibido).getTitle());
+                 tv_year.setText(registros.get(indiceRegistroAserExibido).getYear());
+                 tv_rated.setText(registros.get(indiceRegistroAserExibido).getRated());
+                 tv_released.setText(registros.get(indiceRegistroAserExibido).getReleased());
+                 tv_runtime.setText(registros.get(indiceRegistroAserExibido).getRuntime());
+                 tv_genre.setText(registros.get(indiceRegistroAserExibido).getGenre());
+                 tv_director.setText(registros.get(indiceRegistroAserExibido).getDirector());
+                 tv_writer.setText(registros.get(indiceRegistroAserExibido).getWriter());
+                 tv_actors.setText(registros.get(indiceRegistroAserExibido).getActors());
+                 tv_plot.setText(registros.get(indiceRegistroAserExibido).getPlot());
+                 tv_language.setText(registros.get(indiceRegistroAserExibido).getLanguage());
+                 tv_country.setText(registros.get(indiceRegistroAserExibido).getCountry());
+                 tv_awards.setText(registros.get(indiceRegistroAserExibido).getAwards());
+                 tv_poster.setText(registros.get(indiceRegistroAserExibido).getPoster());
+              //   tv_ratings.setText(registros.get(indiceRegistroAserExibido).getRatings());
+                 tv_metascore.setText(registros.get(indiceRegistroAserExibido).getMetascore());
+                 tv_imdbRating.setText(registros.get(indiceRegistroAserExibido).getImdbRating());
+                 tv_imdbVotes.setText(registros.get(indiceRegistroAserExibido).getImdbVotes());
+                 tv_imdbID.setText(registros.get(indiceRegistroAserExibido).getImdbID());
+                 tv_type.setText(registros.get(indiceRegistroAserExibido).getType());
+                 tv_DVD.setText(registros.get(indiceRegistroAserExibido).getDVD());
+                 tv_boxOffice.setText(registros.get(indiceRegistroAserExibido).getBoxOffice());
+                 tv_production.setText(registros.get(indiceRegistroAserExibido).getProduction());
+                 tv_website.setText(registros.get(indiceRegistroAserExibido).getWebsite());
+
+
+
+
+             // exibir link da foto
+             if(tv_poster.getText().toString().contains("http")) {
+                 tv_poster.setClickable(true);
+                 tv_poster.setMovementMethod(LinkMovementMethod.getInstance());
+                 String link = tv_poster.getText().toString();
+                 String text = "<a href='" + link + "'> Clique aqui para visualizar (Requer Internet) </a>";
+                 tv_poster.setText(Html.fromHtml(text));
+             }
 
              }
 
-         if(indiceRegistroaSerExibido==0){
+         if(indiceRegistroAserExibido==0){
 
              bt_anterior.setEnabled(false);
          }
@@ -381,49 +466,59 @@ public class MainActivity extends AppCompatActivity {
         if (registros != null && registros.size() > 0) {
 
 
-            if (indiceRegistroaSerExibido > 0 && !(registros.size() == indiceRegistroaSerExibido)) {
+            if (indiceRegistroAserExibido > 0 && !(registros.size() == indiceRegistroAserExibido)) {
 
 
 
-                tv_title.setText(registros.get(indiceRegistroaSerExibido).getTitle());
-                tv_year.setText(registros.get(indiceRegistroaSerExibido).getYear());
-                tv_rated.setText(registros.get(indiceRegistroaSerExibido).getRated());
-                tv_released.setText(registros.get(indiceRegistroaSerExibido).getReleased());
-                tv_runtime.setText(registros.get(indiceRegistroaSerExibido).getRuntime());
-                tv_genre.setText(registros.get(indiceRegistroaSerExibido).getGenre());
-                tv_director.setText(registros.get(indiceRegistroaSerExibido).getDirector());
-                tv_writer.setText(registros.get(indiceRegistroaSerExibido).getWriter());
-                tv_actors.setText(registros.get(indiceRegistroaSerExibido).getActors());
-                tv_plot.setText(registros.get(indiceRegistroaSerExibido).getPlot());
-                tv_language.setText(registros.get(indiceRegistroaSerExibido).getLanguage());
-                tv_country.setText(registros.get(indiceRegistroaSerExibido).getCountry());
-                tv_awards.setText(registros.get(indiceRegistroaSerExibido).getAwards());
-                tv_poster.setText(registros.get(indiceRegistroaSerExibido).getPoster());
-                tv_ratings.setText(registros.get(indiceRegistroaSerExibido).getRatings());
-                tv_metascore.setText(registros.get(indiceRegistroaSerExibido).getMetascore());
-                tv_imdbRating.setText(registros.get(indiceRegistroaSerExibido).getImdbRating());
-                tv_imdbVotes.setText(registros.get(indiceRegistroaSerExibido).getImdbVotes());
-                tv_imdbID.setText(registros.get(indiceRegistroaSerExibido).getImdbID());
-                tv_type.setText(registros.get(indiceRegistroaSerExibido).getType());
-                tv_DVD.setText(registros.get(indiceRegistroaSerExibido).getDVD());
-                tv_boxOffice.setText(registros.get(indiceRegistroaSerExibido).getBoxOffice());
-                tv_production.setText(registros.get(indiceRegistroaSerExibido).getProduction());
-                tv_website.setText(registros.get(indiceRegistroaSerExibido).getWebsite());
+                tv_title.setText(registros.get(indiceRegistroAserExibido).getTitle());
+                tv_year.setText(registros.get(indiceRegistroAserExibido).getYear());
+                tv_rated.setText(registros.get(indiceRegistroAserExibido).getRated());
+                tv_released.setText(registros.get(indiceRegistroAserExibido).getReleased());
+                tv_runtime.setText(registros.get(indiceRegistroAserExibido).getRuntime());
+                tv_genre.setText(registros.get(indiceRegistroAserExibido).getGenre());
+                tv_director.setText(registros.get(indiceRegistroAserExibido).getDirector());
+                tv_writer.setText(registros.get(indiceRegistroAserExibido).getWriter());
+                tv_actors.setText(registros.get(indiceRegistroAserExibido).getActors());
+                tv_plot.setText(registros.get(indiceRegistroAserExibido).getPlot());
+                tv_language.setText(registros.get(indiceRegistroAserExibido).getLanguage());
+                tv_country.setText(registros.get(indiceRegistroAserExibido).getCountry());
+                tv_awards.setText(registros.get(indiceRegistroAserExibido).getAwards());
+                tv_poster.setText(registros.get(indiceRegistroAserExibido).getPoster());
+                tv_ratings.setText((String) registros.get(indiceRegistroAserExibido).getRatings());
+                tv_metascore.setText(registros.get(indiceRegistroAserExibido).getMetascore());
+                tv_imdbRating.setText(registros.get(indiceRegistroAserExibido).getImdbRating());
+                tv_imdbVotes.setText(registros.get(indiceRegistroAserExibido).getImdbVotes());
+                tv_imdbID.setText(registros.get(indiceRegistroAserExibido).getImdbID());
+                tv_type.setText(registros.get(indiceRegistroAserExibido).getType());
+                tv_DVD.setText(registros.get(indiceRegistroAserExibido).getDVD());
+                tv_boxOffice.setText(registros.get(indiceRegistroAserExibido).getBoxOffice());
+                tv_production.setText(registros.get(indiceRegistroAserExibido).getProduction());
+                tv_website.setText(registros.get(indiceRegistroAserExibido).getWebsite());
 
+
+                // exibir link da foto
+                if(tv_poster.getText().toString().contains("http")) {
+                    tv_poster.setClickable(true);
+                    tv_poster.setMovementMethod(LinkMovementMethod.getInstance());
+                    String link = tv_poster.getText().toString();
+                    String text = "<a href='" + link + "'> Clique aqui para visualizar (Requer Internet) </a>";
+                    tv_poster.setText(Html.fromHtml(text));
+                }
+                //
             }
 
-            if(registros.size()!=indiceRegistroaSerExibido) {
-                indiceRegistroaSerExibido++;
+            if(registros.size()!=indiceRegistroAserExibido) {
+                indiceRegistroAserExibido++;
 
             }
         }
 
-        if(indiceRegistroaSerExibido!=-1){
+        if(indiceRegistroAserExibido!=-1){
 
             bt_anterior.setEnabled(true);
         }
 
-        if (registros.size()-1 == indiceRegistroaSerExibido) {
+        if (registros.size() == indiceRegistroAserExibido) {
             bt_proximo.setEnabled(false);
 
 

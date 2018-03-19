@@ -19,7 +19,7 @@ import lopes.henrique.movieapp.model.RespostaServidor;
 public class MovieApp_db extends SQLiteOpenHelper {
 
     public  static final String BANCO = "DB_MOVIES_APP";
-    public  static final int VERSAO = 3;
+    public  static final int VERSAO = 4;
     
     public MovieApp_db(Context context) {
         super(context, BANCO, null , VERSAO);

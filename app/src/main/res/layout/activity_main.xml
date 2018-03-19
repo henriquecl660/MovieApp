@@ -14,7 +14,7 @@
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
         android:onClick="on_clickSearch"
-        android:text="Search"
+        android:text="Buscar"
         app:layout_constraintBottom_toBottomOf="@+id/et_entradaNomeFilme"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.51"
@@ -27,7 +27,7 @@
         android:layout_width="wrap_content"
         android:layout_height="49dp"
         android:layout_marginEnd="8dp"
-        android:onClick="btn_salvarRegistro"
+        android:onClick="salvarRegistro"
         android:text="Salvar"
         app:layout_constraintEnd_toStartOf="@+id/btn_recuperar"
         app:layout_constraintTop_toTopOf="@+id/btn_recuperar" />
@@ -65,7 +65,7 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="0dp"
             android:orientation="vertical">
 
             <TextView
@@ -264,7 +264,11 @@
                 android:id="@+id/tv_poster"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:paddingBottom="5dp" />
+                android:paddingBottom="5dp"
+
+
+                />
+
 
             <TextView
                 android:id="@+id/textView12"
